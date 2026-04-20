@@ -1,25 +1,28 @@
 import type { RequestHandler } from './$types';
-import { fileURLToPath } from 'node:url';
-import path from 'node:path';
 import fs from 'node:fs';
 
 export const GET: RequestHandler = async () => {
-	const importUrl = new URL('.', import.meta.url);
-	const rootDir = fileURLToPath(importUrl);
-	const projectsDir = path.join(rootDir, '..', '..', 'projects');
-	const srcProjectsDir = path.join(process.cwd(), 'src', 'projects');
+	const paths = [
+		'/var/task/projects',
+		'/var/task/src/projects',
+		'/var/task/.svelte-kit/output/server/entries/projects',
+		process.cwd() + '/projects',
+		process.cwd() + '/src/projects',
+	];
 
-	const debug = {
-		importMetaUrl: importUrl.toString(),
-		rootDir,
+	const debug: Record<string, any> = {
 		processCwd: process.cwd(),
-		projectsDir,
-		srcProjectsDir,
-		projectsDirExists: fs.existsSync(projectsDir),
-		srcProjectsDirExists: fs.existsSync(srcProjectsDir),
-		srcProjectsExists: fs.existsSync('/var/task/src/projects'),
-		listing: fs.existsSync(projectsDir) ? fs.readdirSync(projectsDir) : null,
+		filesInTask: fs.readdirSync('/var/task').slice(0, 30),
 	};
+
+	for (const p of paths) {
+		debug[p] = { exists: fs.existsSync(p) };
+		if (fs.existsSync(p)) {
+			try {
+				debug[p].listing = fs.readdirSync(p).slice(0, 5);
+			} catch {}
+		}
+	}
 
 	return new Response(JSON.stringify(debug, null, 2), {
 		headers: { 'Content-Type': 'application/json' }
