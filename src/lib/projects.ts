@@ -1,43 +1,47 @@
-// Project discovery — reads projects/ from repo root on Vercel
-// process.cwd() on Vercel serverless = /var/task (repo root)
+// Project discovery — uses import.meta.glob with eager raw imports
+// Vite bundles all matched files as strings at build time
+// Works on Vercel serverless because data is embedded in the JS bundle
 
-import fs from 'node:fs';
-import path from 'node:path';
+// Eager glob = synchronous, bundled at build time
+const _contextFiles = import.meta.glob('/src/lib/projects/*/context/*.md', {
+	eager: true,
+	query: '?raw',
+	import: 'default'
+}) as Record<string, string>;
 
-export function getProjectsDir(): string {
-	return path.join(process.cwd(), 'projects');
-}
+const _skillFiles = import.meta.glob('/src/lib/projects/*/skills/*.md', {
+	eager: true,
+	query: '?raw',
+	import: 'default'
+}) as Record<string, string>;
 
 export function listProjects(): string[] {
-	const dir = getProjectsDir();
-	if (!fs.existsSync(dir)) return [];
-	return fs
-		.readdirSync(dir)
-		.filter((f) => fs.statSync(path.join(dir, f)).isDirectory());
+	const projects = new Set<string>();
+	for (const p of Object.keys(_contextFiles)) {
+		const m = p.match(/\/src\/lib\/projects\/([^/]+)\//);
+		if (m) projects.add(m[1]);
+	}
+	for (const p of Object.keys(_skillFiles)) {
+		const m = p.match(/\/src\/lib\/projects\/([^/]+)\//);
+		if (m) projects.add(m[1]);
+	}
+	return Array.from(projects);
 }
 
 export function getProjectContext(project: string): string {
-	const contextDir = path.join(getProjectsDir(), project, 'context');
-	if (!fs.existsSync(contextDir)) return '';
-
-	const files = fs.readdirSync(contextDir).filter((f) => f.endsWith('.md'));
-	return files
-		.map((f) => fs.readFileSync(path.join(contextDir, f), 'utf8'))
-		.join('\n\n');
+	const entries = Object.entries(_contextFiles)
+		.filter(([p]) => p.includes(`/projects/${project}/context/`))
+		.map(([, c]) => c);
+	return entries.join('\n\n');
 }
 
 export function listSkills(project: string): string[] {
-	const skillsDir = path.join(getProjectsDir(), project, 'skills');
-	if (!fs.existsSync(skillsDir)) return [];
-
-	return fs
-		.readdirSync(skillsDir)
-		.filter((f) => f.endsWith('.md'))
-		.map((f) => f.replace(/\.md$/, ''));
+	return Object.keys(_skillFiles)
+		.filter((p) => p.includes(`/projects/${project}/skills/`))
+		.map((p) => p.replace(`/src/lib/projects/${project}/skills/`, '').replace('.md', ''));
 }
 
 export function getSkill(project: string, skillName: string): string | null {
-	const skillFile = path.join(getProjectsDir(), project, 'skills', `${skillName}.md`);
-	if (!fs.existsSync(skillFile)) return null;
-	return fs.readFileSync(skillFile, 'utf8');
+	const path = `/src/lib/projects/${project}/skills/${skillName}.md`;
+	return _skillFiles[path] ?? null;
 }
