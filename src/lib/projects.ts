@@ -1,16 +1,11 @@
-// Project discovery — projects/ bundled inside src/ for Vercel serverless
+// Project discovery — reads projects/ from repo root on Vercel
+// process.cwd() on Vercel serverless = /var/task (repo root)
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-function getRootDir(): string {
-	// Navigate from src/lib/ up to src/ then projects/
-	return path.join(fileURLToPath(new URL('.', import.meta.url)), '..', '..', 'projects');
-}
 
 export function getProjectsDir(): string {
-	return getRootDir();
+	return path.join(process.cwd(), 'projects');
 }
 
 export function listProjects(): string[] {

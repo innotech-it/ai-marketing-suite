@@ -1,28 +1,14 @@
 import type { RequestHandler } from './$types';
 import fs from 'node:fs';
+import path from 'node:path';
 
 export const GET: RequestHandler = async () => {
-	const paths = [
-		'/var/task/projects',
-		'/var/task/src/projects',
-		'/var/task/.svelte-kit/output/server/entries/projects',
-		process.cwd() + '/projects',
-		process.cwd() + '/src/projects',
-	];
-
-	const debug: Record<string, any> = {
+	const debug = {
 		processCwd: process.cwd(),
-		filesInTask: fs.readdirSync('/var/task').slice(0, 30),
+		projectsAtCwd: fs.existsSync(path.join(process.cwd(), 'projects')),
+		projectsAtVarTask: fs.existsSync('/var/task/projects'),
+		varTaskListing: fs.readdirSync('/var/task').filter(f => !f.startsWith('.')).slice(0, 20),
 	};
-
-	for (const p of paths) {
-		debug[p] = { exists: fs.existsSync(p) };
-		if (fs.existsSync(p)) {
-			try {
-				debug[p].listing = fs.readdirSync(p).slice(0, 5);
-			} catch {}
-		}
-	}
 
 	return new Response(JSON.stringify(debug, null, 2), {
 		headers: { 'Content-Type': 'application/json' }
