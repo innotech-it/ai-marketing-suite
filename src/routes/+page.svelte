@@ -92,7 +92,7 @@
 <div class="app">
 	<header>
 		<h1>AI Marketing Suite</h1>
-		<p class="subtitle">Skills marketing pilotés par LLM — GLM 5.1 &amp; MiniMax 2.7</p>
+		<p class="subtitle">Skills marketing IA — InnoTech-IT</p>
 	</header>
 
 	<main>
