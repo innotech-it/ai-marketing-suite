@@ -5,8 +5,11 @@ export interface LLMResponse {
 	tokens?: number;
 }
 
+const MINIMAX_API_BASE = process.env.MINIMAX_API_BASE || 'https://api.minimax.chat/v1/text/chatcompletion';
+const GLM_API_BASE = process.env.GLM_API_BASE || 'https://api.zhipu.ai/v1/chat/completions';
+
 export async function callGLM(prompt: string, apiKey: string): Promise<LLMResponse> {
-	const res = await fetch('https://api.zhipu.ai/v1/chat/completions', {
+	const res = await fetch(GLM_API_BASE, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
@@ -31,7 +34,7 @@ export async function callGLM(prompt: string, apiKey: string): Promise<LLMRespon
 }
 
 export async function callMiniMax(prompt: string, apiKey: string): Promise<LLMResponse> {
-	const res = await fetch('https://api.minimax.chat/v1/text/chatcompletion', {
+	const res = await fetch(MINIMAX_API_BASE, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
