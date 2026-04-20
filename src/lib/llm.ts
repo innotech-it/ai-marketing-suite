@@ -5,7 +5,7 @@ export interface LLMResponse {
 	tokens?: number;
 }
 
-const MINIMAX_API_BASE = process.env.MINIMAX_API_BASE || 'https://api.minimax.chat/v1/text/chatcompletion';
+const MINIMAX_API_BASE = process.env.MINIMAX_API_BASE || 'https://api.minimax.io/v1';
 const GLM_API_BASE = process.env.GLM_API_BASE || 'https://api.z.ai/api/coding/paas/v4';
 
 export async function callGLM(prompt: string, apiKey: string): Promise<LLMResponse> {
@@ -13,7 +13,7 @@ export async function callGLM(prompt: string, apiKey: string): Promise<LLMRespon
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-			Authorization: `""`
+			Authorization: `Bearer ${apiKey}`
 		},
 		body: JSON.stringify({
 			model: 'glm-5.1',
@@ -38,7 +38,7 @@ export async function callMiniMax(prompt: string, apiKey: string): Promise<LLMRe
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-			Authorization: `""`
+			Authorization: `Bearer ${apiKey}`
 		},
 		body: JSON.stringify({
 			model: 'abab6.5s-chat',
